@@ -1,0 +1,55 @@
+﻿var sql = @"
+select 
+n_name,
+n_id,
+n_pid,
+ifnull(n_data,'') n_data,
+ifnull(n_order,n_id) n_order,
+ifnull(n_desc,'') n_desc,
+ifnull(n_disable,'0') n_disable,
+ifnull(n_owner,'') n_owner    #1.加个字段（同步表的操作）
+from tree_1
+where ifnull(n_status,'1') != '0' order by ifnull(n_order,_id),n_id
+";
+
+------------------------------
+ [Serializable]
+ public class DBTreeNode
+ {
+	...
+     public string n_owner { get; set; } #2.加个成员
+	...
+ }
+------------------------------
+public static void Bind_Tv(DataTable dt, TreeNodeCollection tnc,
+    string pid_val, string id, string pid, string text,
+    string data,string order,string desc,string disable,string n_owner) #3.1 增加参数
+{
+	...
+       tagObj.Disable = drv[disable].ToString();
+       tagObj.Owner = drv[n_owner].ToString(); #3.3 取值
+	...
+        Bind_Tv(dt, newNode.Nodes, newNode.Name, id, pid, text, data, order, desc, disable, n_owner);#3.2 增加参数
+    }
+}
+------------------------------
+    public class DBTreeNodeTag
+    {
+	...
+        pubic string Owner; #4加个成员
+    }
+------------------------------
+修改调用：
+DBTreeNodeUtil.Bind_Tv(datatable, treeView1.Nodes, null, "n_id", "n_pid", "n_name", "n_data", "n_order", "n_desc", "n_disable", "n_owner"); #增加参数
+
+------------------------------
+界面上增加个文本框：
+txtOwner
+------------------------------
+private void call_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+{
+  ...
+  this.txtDisable.Text = tagObj.Disable;
+  this.txtOwner.Text = tagObj.Owner; #5.赋值
+  ...
+}
